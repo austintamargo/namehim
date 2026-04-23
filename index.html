@@ -47,7 +47,7 @@
           <thead class="bg-muted text-slate-300">
             <tr>
               <th class="text-left p-3">Full Name</th>
-              <th class="text-center p-3">City, State</th>
+              <th class="text-center p-3">Location (City, State/Province, Country)</th>
               <th class="text-right p-3">Categories</th>
               <th class="text-right p-3">Actions</th>
             </tr>
@@ -71,9 +71,13 @@
             <input id="city" required type="text" class="w-full bg-muted border border-slate-600 rounded px-3 py-2" />
           </div>
           <div>
-            <label class="block mb-1">State * (2-letter)</label>
-            <input id="state" required maxlength="2" type="text" class="w-full uppercase bg-muted border border-slate-600 rounded px-3 py-2" />
+            <label class="block mb-1">State / Province (optional)</label>
+            <input id="state" type="text" class="w-full bg-muted border border-slate-600 rounded px-3 py-2" placeholder="e.g., CA, Ontario" />
           </div>
+        </div>
+        <div>
+          <label class="block mb-1">Country *</label>
+          <input id="country" required type="text" class="w-full bg-muted border border-slate-600 rounded px-3 py-2" placeholder="e.g., USA, Canada, UK" />
         </div>
 
         <fieldset>
@@ -191,6 +195,13 @@
       ).join('');
     }
 
+    function formatLocation(city, state, country) {
+      let parts = [escapeHTML(city)];
+      if (state && state.trim() !== "") parts.push(escapeHTML(state));
+      parts.push(escapeHTML(country));
+      return parts.join(', ');
+    }
+
     function renderReports(reports) {
       reportsBody.innerHTML = '';
       if (!reports.length) {
@@ -203,7 +214,7 @@
         tr.className = 'hover:bg-slate-900/50';
         tr.innerHTML = `
           <td class="p-3 text-left align-top">${escapeHTML(report.name)}</td>
-          <td class="p-3 text-center align-top">${escapeHTML(report.city)}, ${escapeHTML(report.state)}</td>
+          <td class="p-3 text-center align-top">${formatLocation(report.city, report.state, report.country)}</td>
           <td class="p-3 text-right align-top">${renderCategoryPills(report.categories)}</td>
           <td class="p-3 text-right align-top">
             <button data-report-id="${report.id}" class="report-entry-btn text-xs border border-slate-500 rounded px-2 py-1 hover:bg-slate-700">
@@ -229,7 +240,7 @@
       browseMessage.textContent = 'Loading reports...';
       const { data, error } = await supabase
         .from('reports')
-        .select('id,name,city,state,categories,created_at')
+        .select('id,name,city,state,country,categories,created_at')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -258,8 +269,15 @@
 
       const name = document.getElementById('name').value.trim();
       const city = document.getElementById('city').value.trim();
-      const state = document.getElementById('state').value.trim().toUpperCase();
+      let state = document.getElementById('state').value.trim();
+      const country = document.getElementById('country').value.trim();
       const categories = Array.from(document.querySelectorAll('input[name="categories"]:checked')).map(el => el.value);
+
+      if (!name || !city || !country) {
+        submitMessage.textContent = 'Please fill all required fields (Name, City, Country).';
+        submitMessage.className = 'mt-4 text-sm text-red-400';
+        return;
+      }
 
       if (!categories.length) {
         submitMessage.textContent = 'Please select at least one category.';
@@ -272,7 +290,8 @@
       const payload = {
         name,
         city,
-        state,
+        state: state || null,
+        country,
         categories,
         submitter_uuid: localStorage.getItem('submitter_id')
       };
