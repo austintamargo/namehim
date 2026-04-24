@@ -298,9 +298,7 @@
   }
   td {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: flex-start;
+    flex-direction: column;
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border);
   }
@@ -311,18 +309,16 @@
     content: attr(data-label);
     font-weight: 600;
     color: #93c5fd;
-    width: 40%;
-    flex-shrink: 0;
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
   }
   td > * {
-    flex: 1;
-    text-align: left;
+    width: 100%;
     word-break: break-word;
   }
-  /* If there's a button, make sure it doesn't overflow */
   td button {
-    white-space: normal;
-    word-break: normal;
+    width: auto;
+    align-self: flex-start;
   }
 }
     
