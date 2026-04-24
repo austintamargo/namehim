@@ -799,25 +799,24 @@
       }
 
       reports.forEach((report) => {
-        const categories = Array.isArray(report.categories) ? report.categories : [];
-        const pillHTML = categories
-          .map((category) => {
-            const normalized = String(category || '').toLowerCase().trim();
-            const cssClass = getCategoryClass(normalized);
-            return '<span class="pill ' + cssClass + '">' + escapeHTML(toTitleCase(normalized)) + '</span>';
-          })
-          .join('');
+  const categories = Array.isArray(report.categories) ? report.categories : [];
+  const pillHTML = categories
+    .map((category) => {
+      const normalized = String(category || '').toLowerCase().trim();
+      const cssClass = getCategoryClass(normalized);
+      return '<span class="pill ' + cssClass + '">' + escapeHTML(toTitleCase(normalized)) + '</span>';
+    })
+    .join('');
 
-        const row = document.createElement('tr');
-        row.innerHTML = '' +
-          '<td>' + escapeHTML(report.name || '') + '</td>' +
-          '<td>' + formatLocation(report.city, report.state, report.country) + '</td>' +
-          '<td><div class="pills">' + pillHTML + '</div></td>' +
-          '<td><button type="button" class="report-entry-btn" data-report-id="' + escapeHTML(report.id || '') + '">Report this entry</button></td>';
-
-        reportsBody.appendChild(row);
-      });
-    }
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td data-label="Name">${escapeHTML(report.name || '')}</td>
+    <td data-label="Location">${formatLocation(report.city, report.state, report.country)}</td>
+    <td data-label="Categories"><div class="pills">${pillHTML}</div></td>
+    <td data-label="Actions"><button type="button" class="report-entry-btn" data-report-id="${escapeHTML(report.id || '')}">Report this entry</button></td>
+  `;
+  reportsBody.appendChild(row);
+});
 
     function applySearchFilter() {
       const query = (reportSearch.value || '').trim().toLowerCase();
