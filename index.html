@@ -89,6 +89,8 @@
     .page.active { display: block; }
 
     h1 { margin: 0; font-size: 1.7rem; }
+    .site-title-link { color: inherit; text-decoration: none; }
+    .site-title-link:hover { text-decoration: underline; text-underline-offset: 0.18em; }
     h2 { margin-top: 0; margin-bottom: 1rem; font-size: 1.4rem; }
 
     .controls {
@@ -279,7 +281,7 @@
 
   <header>
     <div class="container header-inner">
-      <h1>NameHim</h1>
+      <h1><a class="site-title-link" href="index.html#/browse">NameHim</a></h1>
       <nav>
         <a href="#/browse" class="nav-link" data-route="#/browse">Browse</a>
         <a href="#/submit" class="nav-link" data-route="#/submit">Submit</a>
