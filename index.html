@@ -52,7 +52,8 @@
       max-width: 1080px;
       margin: 0 auto;
       width: 100%;
-      padding: 0 1rem;
+      padding-left: max(1rem, calc(env(safe-area-inset-left) + 0.75rem));
+      padding-right: max(1rem, calc(env(safe-area-inset-right) + 0.75rem));
     }
 
     .header-inner {
@@ -321,7 +322,13 @@
 
     .footer-inner a { color: inherit; }
 
+
     @media (max-width: 760px) {
+      .container {
+        padding-left: max(1.15rem, calc(env(safe-area-inset-left) + 0.85rem));
+        padding-right: max(1.15rem, calc(env(safe-area-inset-right) + 0.85rem));
+      }
+
   table {
     min-width: 0;     /* remove the 760px minimum */
     width: 100%;      /* allow it to shrink to the container */
