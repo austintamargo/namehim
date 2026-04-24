@@ -116,14 +116,16 @@ var simplemaps_usmap_mapinfo={map_name:'us',initial_view:{x:-20,y:-10,x2:980,y2:
     container.style.width = "100%";
     container.style.maxWidth = "100%";
     container.style.position = "relative";
+    container.style.overflowX = "auto";
+  }
 
-    var svg = container.querySelector("svg");
-    if (svg) {
-      svg.style.width = "100%";
-      svg.style.height = "auto";
-      svg.setAttribute("width", "100%");
-      svg.removeAttribute("height");
+  function refreshMapHitAreas() {
+    var map = window.simplemaps_usmap;
+    if (!map || !map.loaded || typeof map.resize !== "function") {
+      return;
     }
+
+    map.resize();
   }
 
   function normalizeMapPointerEvents() {
@@ -334,8 +336,14 @@ var simplemaps_usmap_mapinfo={map_name:'us',initial_view:{x:-20,y:-10,x2:980,y2:
       selectState(null, false);
     };
 
-    window.addEventListener("resize", ensureMapResponsive);
+    window.addEventListener("resize", function () {
+      ensureMapResponsive();
+      refreshMapHitAreas();
+      normalizeMapPointerEvents();
+    });
+
     ensureMapResponsive();
+    refreshMapHitAreas();
     normalizeMapPointerEvents();
     return true;
   }
