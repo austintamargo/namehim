@@ -378,15 +378,9 @@
             <input id="name" type="text" required />
           </div>
 
-          <div class="grid">
-            <div class="row">
-              <label for="city">City *</label>
-              <input id="city" type="text" required />
-            </div>
-            <div class="row">
-              <label for="state">State / Province (optional)</label>
-              <input id="state" type="text" maxlength="10" />
-            </div>
+          <div class="row">
+            <label for="city">City *</label>
+            <input id="city" type="text" required />
           </div>
 
           <div class="row">
@@ -592,6 +586,11 @@
             </select>
           </div>
 
+          <div id="state-field-container" class="row">
+            <label for="state">State / Province (optional)</label>
+            <input id="state" type="text" placeholder="State / Province (optional)" />
+          </div>
+
           <fieldset>
             <legend>Categories *</legend>
             <div class="checkboxes" id="category-checkboxes"></div>
@@ -662,6 +661,18 @@
     const turnstileWarning = document.getElementById('turnstile-warning');
     const categoryContainer = document.getElementById('category-checkboxes');
     const reportCount = document.getElementById('report-count');
+    const countryField = document.getElementById('country');
+    const stateFieldContainer = document.getElementById('state-field-container');
+
+    const US_STATES = [
+      'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
+      'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
+      'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
+      'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico',
+      'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
+      'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
+      'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
+    ];
 
     let allReports = [];
 
@@ -783,6 +794,29 @@
 
     function updateReportCount(total) {
       reportCount.textContent = total + ' reports and counting!';
+    }
+
+    function renderStateField() {
+      const selectedCountry = (countryField.value || '').trim();
+
+      if (selectedCountry === 'United States of America') {
+        const stateOptions = US_STATES
+          .map((state) => '<option value="' + escapeHTML(state) + '">' + escapeHTML(state) + '</option>')
+          .join('');
+        stateFieldContainer.innerHTML = `
+          <label for="state">State / Province (optional)</label>
+          <select id="state">
+            <option value="">Select a state (optional)</option>
+            ${stateOptions}
+          </select>
+        `;
+        return;
+      }
+
+      stateFieldContainer.innerHTML = `
+        <label for="state">State / Province (optional)</label>
+        <input type="text" id="state" placeholder="State / Province (optional)">
+      `;
     }
 
     function renderReportRows(reports) {
@@ -951,6 +985,7 @@
       addSubmissionTimestamp();
       updateRateLimitUI();
       reportForm.reset();
+      renderStateField();
       resetTurnstileWidget();
       submitMessage.textContent = 'Report submitted successfully.';
       submitMessage.className = 'message success';
@@ -1021,8 +1056,10 @@
       loadReports();
       setupReportActionHandler();
       startRealtimeUpdates();
+      renderStateField();
 
       window.addEventListener('hashchange', renderRoute);
+      countryField.addEventListener('change', renderStateField);
       reportSearch.addEventListener('input', applySearchFilter);
       clearSearch.addEventListener('click', function clearSearchInput() {
         reportSearch.value = '';
