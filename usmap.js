@@ -17,7 +17,9 @@ var simplemaps_usmap_mapinfo={map_name:'us',initial_view:{x:-20,y:-10,x2:980,y2:
 (function () {
   var DEFAULT_STATE_COLOR = "#2d3748";
   var HOVER_STATE_COLOR = "#a855f7";
+  var ACTIVE_STATE_COLOR = "#7c3aed";
   var overridesApplied = false;
+  var selectedStateId = null;
 
   function escapeHtml(value) {
     return String(value)
@@ -34,6 +36,59 @@ var simplemaps_usmap_mapinfo={map_name:'us',initial_view:{x:-20,y:-10,x2:980,y2:
     return stateSpecific[stateId] && stateSpecific[stateId].name
       ? stateSpecific[stateId].name
       : stateId;
+  }
+
+  function getStateIdByName(stateName) {
+    var mapdata = window.simplemaps_usmap_mapdata || {};
+    var stateSpecific = mapdata.state_specific || {};
+    var normalized = String(stateName || "").trim().toLowerCase();
+    var stateId;
+
+    for (stateId in stateSpecific) {
+      if (
+        Object.prototype.hasOwnProperty.call(stateSpecific, stateId) &&
+        stateSpecific[stateId] &&
+        String(stateSpecific[stateId].name || "").trim().toLowerCase() === normalized
+      ) {
+        return stateId;
+      }
+    }
+
+    return null;
+  }
+
+  function setSelectedState(stateId) {
+    if (selectedStateId && selectedStateId !== stateId) {
+      setStateFill(selectedStateId, DEFAULT_STATE_COLOR);
+    }
+
+    selectedStateId = stateId || null;
+
+    if (selectedStateId) {
+      setStateFill(selectedStateId, ACTIVE_STATE_COLOR);
+    }
+  }
+
+  function syncStateDropdown(stateName) {
+    if (typeof window.setStateDropdownValue === "function") {
+      window.setStateDropdownValue(stateName || "");
+    }
+  }
+
+  function selectState(stateId, shouldFilter) {
+    if (!stateId) {
+      setSelectedState(null);
+      syncStateDropdown("");
+      return;
+    }
+
+    setSelectedState(stateId);
+    var stateName = getStateName(stateId);
+    syncStateDropdown(stateName);
+
+    if (shouldFilter && typeof window.filterReportsByState === "function") {
+      window.filterReportsByState(stateName);
+    }
   }
 
   function getReportCount(stateName) {
@@ -207,7 +262,11 @@ var simplemaps_usmap_mapinfo={map_name:'us',initial_view:{x:-20,y:-10,x2:980,y2:
     });
 
     chainHook("out_state", function (stateId) {
-      setStateFill(stateId, DEFAULT_STATE_COLOR);
+      if (selectedStateId && stateId === selectedStateId) {
+        setStateFill(stateId, ACTIVE_STATE_COLOR);
+      } else {
+        setStateFill(stateId, DEFAULT_STATE_COLOR);
+      }
       hideTooltip();
     });
 
@@ -218,10 +277,7 @@ var simplemaps_usmap_mapinfo={map_name:'us',initial_view:{x:-20,y:-10,x2:980,y2:
       if (event && typeof event.stopPropagation === "function") {
         event.stopPropagation();
       }
-      var stateName = getStateName(stateId);
-      if (typeof window.filterReportsByState === "function") {
-        window.filterReportsByState(stateName);
-      }
+      selectState(stateId, true);
     });
 
     var container = getMapContainer();
@@ -229,6 +285,15 @@ var simplemaps_usmap_mapinfo={map_name:'us',initial_view:{x:-20,y:-10,x2:980,y2:
       container.addEventListener("mousemove", moveTooltip);
       container.addEventListener("mouseleave", hideTooltip);
     }
+
+    window.selectStateOnMapByName = function (stateName) {
+      var stateId = getStateIdByName(stateName);
+      selectState(stateId, true);
+    };
+
+    window.clearSelectedMapState = function () {
+      selectState(null, false);
+    };
 
     window.addEventListener("resize", ensureMapResponsive);
     ensureMapResponsive();

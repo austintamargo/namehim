@@ -366,7 +366,11 @@
           <button id="clear-search" type="button">Clear</button>
         </div>
         <p class="table-guidance">
-          Click on a state to see results for that state <span>(full list below).</span>
+          Click on a state to see results for that state, or select a state from the list
+          <select id="browse-state-select" aria-label="Select a state to filter reports">
+            <option value="">Select a state</option>
+          </select>
+          <span>(full list below).</span>
         </p>
         <div id="map"></div>
         
@@ -679,6 +683,7 @@
     const reportCount = document.getElementById('report-count');
     const countryField = document.getElementById('country');
     const stateFieldContainer = document.getElementById('state-field-container');
+    const browseStateSelect = document.getElementById('browse-state-select');
 
     const US_STATES = [
       'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
@@ -689,6 +694,8 @@
       'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
       'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
     ];
+
+    window.US_STATES = US_STATES;
 
     let allReports = [];
     window.allReports = allReports;
@@ -721,6 +728,27 @@
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ');
     }
+
+
+    function populateBrowseStateSelect() {
+      if (!browseStateSelect) {
+        return;
+      }
+
+      const stateOptions = US_STATES
+        .map((state) => '<option value="' + escapeHTML(state) + '">' + escapeHTML(state) + '</option>')
+        .join('');
+      browseStateSelect.innerHTML = '<option value="">Select a state</option>' + stateOptions;
+    }
+
+    function setStateDropdownValue(stateName) {
+      if (!browseStateSelect) {
+        return;
+      }
+      browseStateSelect.value = stateName || '';
+    }
+
+    window.setStateDropdownValue = setStateDropdownValue;
 
     function filterReportsByState(stateFullName) {
   const searchInput = document.getElementById('report-search');
@@ -1022,6 +1050,7 @@
       updateRateLimitUI();
       reportForm.reset();
       renderStateField();
+      populateBrowseStateSelect();
       resetTurnstileWidget();
       submitMessage.textContent = 'Report submitted successfully.';
       submitMessage.className = 'message success';
@@ -1093,14 +1122,38 @@
       setupReportActionHandler();
       startRealtimeUpdates();
       renderStateField();
+      populateBrowseStateSelect();
 
       window.addEventListener('hashchange', renderRoute);
       countryField.addEventListener('change', renderStateField);
       reportSearch.addEventListener('input', applySearchFilter);
       clearSearch.addEventListener('click', function clearSearchInput() {
         reportSearch.value = '';
+        setStateDropdownValue('');
+        if (typeof window.clearSelectedMapState === 'function') {
+          window.clearSelectedMapState();
+        }
         applySearchFilter();
       });
+      if (browseStateSelect) {
+        browseStateSelect.addEventListener('change', function onStateSelectChange() {
+          const selectedState = browseStateSelect.value;
+          if (!selectedState) {
+            if (typeof window.clearSelectedMapState === 'function') {
+              window.clearSelectedMapState();
+            }
+            reportSearch.value = '';
+            applySearchFilter();
+            return;
+          }
+
+          if (typeof window.selectStateOnMapByName === 'function') {
+            window.selectStateOnMapByName(selectedState);
+          } else {
+            filterReportsByState(selectedState);
+          }
+        });
+      }
       reportForm.addEventListener('submit', handleSubmit);
     }
 
