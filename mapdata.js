@@ -472,25 +472,7 @@ var simplemaps_usmap_mapdata={
       hide: "yes"
     }
   },
-  locations: {
-    "0": {
-      name: "New York",
-      lat: 40.71,
-      lng: -74,
-      description: "default",
-      color: "default",
-      url: "default",
-      type: "default",
-      size: "default"
-    },
-    "1": {
-      name: "Anchorage",
-      lat: 61.2180556,
-      lng: -149.9002778,
-      color: "default",
-      type: "circle"
-    }
-  },
+  locations: {},
   labels: {
     NH: {
       parent_id: "NH",
