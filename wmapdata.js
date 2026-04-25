@@ -1,7 +1,7 @@
 var simplemaps_worldmap_mapdata={
   main_settings: {
    //General settings
-    width: "700", //'700' or 'responsive'
+    width: "responsive", //'700' or 'responsive'
     background_color: "#FFFFFF",
     background_transparent: "no",
     border_color: "#ffffff",
@@ -59,7 +59,7 @@ var simplemaps_worldmap_mapdata={
     popup_nocss: "no",
     
     //Advanced settings
-    div: "map",
+    div: "world-map",
     auto_load: "yes",
     url_new_tab: "no",
     images_directory: "default",

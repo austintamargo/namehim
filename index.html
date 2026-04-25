@@ -1643,9 +1643,70 @@ function initWorldMapToggle() {
   });
 }
 
-// Call this inside your existing init() function (or after init, but before the end of init)
+function initWorldMapInteractions() {
+  function applyCountryFilter(countryName) {
+    if (!countryName) return;
+    if (browseCountrySelect) {
+      browseCountrySelect.value = countryName;
+    }
+    setStateDropdownValue('');
+    if (typeof window.clearSelectedMapState === 'function') {
+      window.clearSelectedMapState();
+    }
+    updateBrowseLocationFiltersUI();
+    applySearchFilter();
+  }
+
+  function applyCountryListFilter(countryNames) {
+    if (!Array.isArray(countryNames) || countryNames.length === 0) return;
+    if (browseCountrySelect && !countryNames.includes(browseCountrySelect.value)) {
+      browseCountrySelect.value = '';
+    }
+    setStateDropdownValue('');
+    if (typeof window.clearSelectedMapState === 'function') {
+      window.clearSelectedMapState();
+    }
+    updateBrowseLocationFiltersUI();
+    const filtered = allReports.filter(report => countryNames.includes(report.country));
+    currentFilteredReports = filtered;
+    renderPagedReports(filtered, 1);
+    if (browseMessage) {
+      browseMessage.textContent = `Showing ${filtered.length} of ${allReports.length} report(s).`;
+    }
+  }
+
+  function attachWorldMapClickHandler(attempt = 0) {
+    if (!window.simplemaps_worldmap || !window.simplemaps_worldmap.map_config) {
+      if (attempt < 30) {
+        window.setTimeout(() => attachWorldMapClickHandler(attempt + 1), 200);
+      }
+      return;
+    }
+
+    window.simplemaps_worldmap.map_config.state_click = function onWorldStateClick(data) {
+      if (!data || !data.name) return;
+      const countryName = String(data.name).trim();
+      if (!countryName) return;
+
+      if (countryName.toLowerCase() === 'palestine' || data.id === 'IL' || data.code === 'IL') {
+        applyCountryListFilter(['Palestine', 'State of Palestine', 'Israel']);
+        return;
+      }
+
+      applyCountryFilter(countryName);
+    };
+
+    if (typeof window.simplemaps_worldmap.refresh === 'function') {
+      window.simplemaps_worldmap.refresh();
+    }
+  }
+
+  attachWorldMapClickHandler();
+}
+
 initWorldMapToggle();
-    
+initWorldMapInteractions();
+
     init();
   </script>
   <!-- At the end of your <body>, before the closing </body> tag -->
@@ -1654,90 +1715,5 @@ initWorldMapToggle();
 <script src="wmapdata.js"></script>
 <script src="worldmap.js"></script>
 
-  <script>
-  (function() {
-    const worldMapDiv = document.getElementById('world-map');
-    const toggleWorldBtn = document document.getElementById('toggle-world-map-btn');
-    if (!worldMapDiv) return;
-
-    let worldMapObj = null;
-
-    // Wait for the map to be ready and attach events
-    function initWorldMap() {
-      if (window.simplemaps_worldmap) {
-        worldMapObj = window.simplemaps_worldmap;
-
-        // Add click handler
-        worldMapObj.map_config.state_click = function(data) {
-          let countryName = data.name;
-          // Special case: Palestine (map code "IL")
-          if (countryName.toLowerCase() === 'palestine' || data.code === 'IL') {
-            filterReportsByCountryList(['Palestine', 'State of Palestine', 'Israel']);
-          } else {
-            filterReportsByCountry(countryName);
-          }
-        };
-
-        // Refresh map to apply changes
-        if (worldMapObj.refresh) worldMapObj.refresh();
-        return;
-      }
-      // If not ready, retry
-      setTimeout(initWorldMap, 200);
-    }
-
-    // Helper: filter by single country
-    function filterReportsByCountry(countryName) {
-      if (!countryName) return;
-      const searchInput = document.getElementById('report-search');
-      if (searchInput) searchInput.value = countryName;
-      const browseStateSelect = document.getElementById('browse-state-select');
-      if (browseStateSelect) browseStateSelect.value = '';
-      if (typeof window.clearSelectedMapState === 'function') window.clearSelectedMapState();
-      if (typeof applySearchFilter === 'function') applySearchFilter();
-    }
-
-    // Helper: filter by list (Palestine/Israel)
-    function filterReportsByCountryList(countries) {
-      if (!countries.length) return;
-      const searchInput = document.getElementById('report-search');
-      if (searchInput) searchInput.value = '';
-      const filtered = window.allReports.filter(r => countries.includes(r.country));
-      if (typeof renderPagedReports === 'function') {
-        renderPagedReports(filtered, 1);
-        const browseMsg = document.getElementById('browse-message');
-        if (browseMsg) browseMsg.textContent = `Showing ${filtered.length} of ${window.allReports.length} report(s) for Palestine/Israel.`;
-      }
-    }
-
-    // Expose helpers globally
-    window.filterReportsByCountry = filterReportsByCountry;
-    window.filterReportsByCountryList = filterReportsByCountryList;
-
-    // Toggle logic (similar to US map)
-    if (toggleWorldBtn) {
-      const saved = localStorage.getItem('namehim_world_map_visible');
-      worldMapDiv.style.display = saved === '1' ? 'block' : 'none';
-      toggleWorldBtn.textContent = saved === '1' ? 'Hide World Map' : 'Show World Map';
-      toggleWorldBtn.setAttribute('aria-expanded', saved === '1');
-
-      toggleWorldBtn.addEventListener('click', () => {
-        const isVisible = worldMapDiv.style.display !== 'none';
-        worldMapDiv.style.display = isVisible ? 'none' : 'block';
-        toggleWorldBtn.textContent = isVisible ? 'Show World Map' : 'Hide World Map';
-        toggleWorldBtn.setAttribute('aria-expanded', !isVisible);
-        localStorage.setItem('namehim_world_map_visible', isVisible ? '0' : '1');
-        if (!isVisible) initWorldMap();
-      });
-    }
-
-    // If the map is visible on page load (saved state), initialise it
-    if (worldMapDiv.style.display !== 'none') {
-      initWorldMap();
-    }
-  })();
-</script>
-
-  
 </body>
 </html>
