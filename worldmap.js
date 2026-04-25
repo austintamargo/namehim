@@ -245,6 +245,23 @@ var simplemaps_worldmap_mapinfo={  map_name: "world",  initial_view: {    x: 0, 
     ensureTooltip().style.display = "none";
   }
 
+  function removeSimpleMapsBranding() {
+    var container = getMapContainer();
+    var links;
+    var i;
+
+    if (!container) {
+      return;
+    }
+
+    links = container.querySelectorAll('a[href*="simplemaps.com"], a[title*="SimpleMaps"], a[title*="Simplemaps"]');
+    for (i = 0; i < links.length; i += 1) {
+      if (links[i] && links[i].parentNode) {
+        links[i].parentNode.removeChild(links[i]);
+      }
+    }
+  }
+
   function moveTooltip(event) {
     var tooltip = ensureTooltip();
     tooltip.style.left = event.clientX + 14 + "px";
@@ -356,6 +373,7 @@ var simplemaps_worldmap_mapinfo={  map_name: "world",  initial_view: {    x: 0, 
 
       disableCountryUrls();
       ensureMapLayout();
+      removeSimpleMapsBranding();
 
       if (map && map.regions) {
         for (regionId in map.regions) {
@@ -428,6 +446,7 @@ var simplemaps_worldmap_mapinfo={  map_name: "world",  initial_view: {    x: 0, 
     window.clearSelectedWorldCountry = clearCountrySelection;
 
     ensureMapLayout();
+    removeSimpleMapsBranding();
     return true;
   }
 
