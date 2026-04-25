@@ -138,6 +138,7 @@
     }
 
     input[type="text"],
+    textarea,
     select {
       width: 100%;
       border: 1px solid var(--border);
@@ -146,6 +147,12 @@
       border-radius: 0.5rem;
       padding: 0.65rem 0.75rem;
       font-size: 0.95rem;
+    }
+
+    textarea {
+      min-height: 8.5rem;
+      resize: vertical;
+      line-height: 1.45;
     }
 
     .search-input { max-width: 420px; }
