@@ -2,19 +2,19 @@ var simplemaps_worldmap_mapdata={
   main_settings: {
    //General settings
     width: "responsive", //'700' or 'responsive'
-    background_color: "#FFFFFF",
-    background_transparent: "no",
+    background_color: "#0f172a",
+    background_transparent: "yes",
     border_color: "#ffffff",
-    popups: "detect",
+    popups: "off",
     
     //State defaults
     state_description: "State description",
-    state_color: "#88A4BC",
-    state_hover_color: "#3B729F",
-    state_url: "http://simplemaps.com",
+    state_color: "#2d3748",
+    state_hover_color: "#a855f7",
+    state_url: "",
     border_size: 1.5,
     all_states_inactive: "no",
-    all_states_zoomable: "yes",
+    all_states_zoomable: "no",
     
     //Location defaults
     location_description: "Location description",
@@ -32,14 +32,14 @@ var simplemaps_worldmap_mapdata={
     all_locations_hidden: "no",
     
     //Label defaults
-    label_color: "#d5ddec",
-    label_hover_color: "#d5ddec",
+    label_color: "#ffffff",
+    label_hover_color: "#ffffff",
     label_size: 22,
     label_font: "Arial",
     hide_labels: "no",
    
     //Zoom settings
-    zoom: "yes",
+    zoom: "no",
     back_image: "no",
     initial_back: "no",
     initial_zoom: -1,

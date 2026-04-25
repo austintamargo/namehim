@@ -356,6 +356,15 @@
 
     #world-map {
       display: none;
+      width: 100%;
+      max-width: 100%;
+      min-height: 420px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.7rem;
+      background: #0f172a;
     }
 
     footer {
@@ -913,7 +922,16 @@
 
     window.setStateDropdownValue = setStateDropdownValue;
 
-    function filterReportsByState(stateFullName) {
+    function setCountryDropdownValue(countryName) {
+      if (!browseCountrySelect) {
+        return;
+      }
+      browseCountrySelect.value = countryName || '';
+    }
+
+    window.setCountryDropdownValue = setCountryDropdownValue;
+
+function filterReportsByState(stateFullName) {
   const searchInput = document.getElementById('report-search');
   if (searchInput) {
     searchInput.value = stateFullName;
@@ -929,6 +947,22 @@
     if (browseMsg) browseMsg.textContent = filtered.length ? `Showing ${filtered.length} of ${allReports.length} report(s), ${REPORTS_PER_PAGE} per page.` : 'No reports found.';
   }
 }
+
+    function filterReportsByCountry(countryName) {
+      if (!countryName) {
+        return;
+      }
+
+      setCountryDropdownValue(countryName);
+      setStateDropdownValue('');
+      updateBrowseLocationFiltersUI();
+      if (typeof window.clearSelectedMapState === 'function') {
+        window.clearSelectedMapState();
+      }
+      applySearchFilter();
+    }
+
+    window.filterReportsByCountry = filterReportsByCountry;
     
     function getCategoryClass(category) {
       return category.replace(/\s+/g, '-');
@@ -1547,6 +1581,9 @@
         if (typeof window.clearSelectedMapState === 'function') {
           window.clearSelectedMapState();
         }
+        if (typeof window.clearSelectedWorldCountry === 'function') {
+          window.clearSelectedWorldCountry();
+        }
         if (getReportIdFromUrl()) {
           clearSingleReportHash();
           return;
@@ -1564,6 +1601,9 @@
           clearSingleReportHash();
           if (typeof window.clearSelectedMapState === 'function') {
             window.clearSelectedMapState();
+          }
+          if (typeof window.clearSelectedWorldCountry === 'function') {
+            window.clearSelectedWorldCountry();
           }
         });
       }
@@ -1588,6 +1628,9 @@
       }
       if (browseCountrySelect) {
         browseCountrySelect.addEventListener('change', function onCountrySelectChange() {
+          if (browseCountrySelect.value === '' && typeof window.clearSelectedWorldCountry === 'function') {
+            window.clearSelectedWorldCountry();
+          }
           updateBrowseLocationFiltersUI();
           applySearchFilter();
         });
@@ -1662,64 +1705,9 @@ function initWorldMapToggle() {
 }
 
 function initWorldMapInteractions() {
-  function applyCountryFilter(countryName) {
-    if (!countryName) return;
-    if (browseCountrySelect) {
-      browseCountrySelect.value = countryName;
-    }
-    setStateDropdownValue('');
-    if (typeof window.clearSelectedMapState === 'function') {
-      window.clearSelectedMapState();
-    }
-    updateBrowseLocationFiltersUI();
-    applySearchFilter();
-  }
-
-  function applyCountryListFilter(countryNames) {
-    if (!Array.isArray(countryNames) || countryNames.length === 0) return;
-    if (browseCountrySelect && !countryNames.includes(browseCountrySelect.value)) {
-      browseCountrySelect.value = '';
-    }
-    setStateDropdownValue('');
-    if (typeof window.clearSelectedMapState === 'function') {
-      window.clearSelectedMapState();
-    }
-    updateBrowseLocationFiltersUI();
-    const filtered = allReports.filter(report => countryNames.includes(report.country));
-    currentFilteredReports = filtered;
-    renderPagedReports(filtered, 1);
-    if (browseMessage) {
-      browseMessage.textContent = `Showing ${filtered.length} of ${allReports.length} report(s).`;
-    }
-  }
-
-  function attachWorldMapClickHandler(attempt = 0) {
-    if (!window.simplemaps_worldmap || !window.simplemaps_worldmap.map_config) {
-      if (attempt < 30) {
-        window.setTimeout(() => attachWorldMapClickHandler(attempt + 1), 200);
-      }
-      return;
-    }
-
-    window.simplemaps_worldmap.map_config.state_click = function onWorldStateClick(data) {
-      if (!data || !data.name) return;
-      const countryName = String(data.name).trim();
-      if (!countryName) return;
-
-      if (countryName.toLowerCase() === 'palestine' || data.id === 'IL' || data.code === 'IL') {
-        applyCountryListFilter(['Palestine', 'State of Palestine', 'Israel']);
-        return;
-      }
-
-      applyCountryFilter(countryName);
-    };
-
-    if (typeof window.simplemaps_worldmap.refresh === 'function') {
-      window.simplemaps_worldmap.refresh();
-    }
-  }
-
-  attachWorldMapClickHandler();
+  window.applyCountryFilterFromWorldMap = function applyCountryFilterFromWorldMap(countryName) {
+    filterReportsByCountry(countryName);
+  };
 }
 
 initWorldMapToggle();
