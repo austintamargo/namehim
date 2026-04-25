@@ -354,6 +354,14 @@
       display: none;
     }
 
+    #world-map {
+  width: 100%;
+  height: 450px;
+  margin-bottom: 1rem;
+  background: #1f2937;
+  border-radius: 0.5rem;
+}
+
     footer {
       border-top: 1px solid var(--border);
       background: rgba(17, 24, 39, 0.85);
@@ -474,6 +482,11 @@
           <button id="toggle-map-btn" class="map-toggle-btn" type="button" aria-expanded="false" aria-controls="map">Show US Map</button>
         </div>
         <div id="map"></div>
+
+        <div class="map-toggle-wrap">
+  <button id="toggle-world-map-btn" class="map-toggle-btn" type="button" aria-expanded="false" aria-controls="world-map">Show World Map</button>
+</div>
+<div id="world-map" style="display: none; width: 100%; height: 450px; margin-bottom: 1rem; background: #1f2937; border-radius: 0.5rem;"></div>
         
         <div class="table-wrap">
           <table>
@@ -1602,6 +1615,37 @@
       reportForm.addEventListener('submit', handleSubmit);
     }
 
+   // --- World Map Toggle (similar to US Map) ---
+const worldMapContainer = document.getElementById('world-map');
+const toggleWorldMapBtn = document.getElementById('toggle-world-map-btn');
+const WORLD_MAP_VISIBILITY_KEY = 'namehim_world_map_visible';
+
+function setWorldMapVisibility(isVisible, persistPreference = true) {
+  if (!worldMapContainer || !toggleWorldMapBtn) return;
+  worldMapContainer.style.display = isVisible ? 'block' : 'none';
+  toggleWorldMapBtn.textContent = isVisible ? 'Hide World Map' : 'Show World Map';
+  toggleWorldMapBtn.setAttribute('aria-expanded', String(isVisible));
+  if (persistPreference) {
+    localStorage.setItem(WORLD_MAP_VISIBILITY_KEY, isVisible ? '1' : '0');
+  }
+  if (isVisible && window.simplemaps_worldmap && typeof window.simplemaps_worldmap.refresh === 'function') {
+    window.simplemaps_worldmap.refresh();
+  }
+}
+
+function initWorldMapToggle() {
+  if (!worldMapContainer || !toggleWorldMapBtn) return;
+  const saved = localStorage.getItem(WORLD_MAP_VISIBILITY_KEY);
+  setWorldMapVisibility(saved === '1', false);
+  toggleWorldMapBtn.addEventListener('click', () => {
+    const isVisible = worldMapContainer.style.display !== 'none';
+    setWorldMapVisibility(!isVisible);
+  });
+}
+
+// Call this inside your existing init() function (or after init, but before the end of init)
+initWorldMapToggle();
+    
     init();
   </script>
   <!-- At the end of your <body>, before the closing </body> tag -->
@@ -1609,6 +1653,88 @@
 <script src="usmap.js?v=2026-04-24-4"></script>
 <script src="wmapdata.js"></script>
 <script src="worldmap.js"></script>
+
+  <script>
+  (function() {
+    // Wait for the map container to exist and the library to be ready
+    const worldMapDiv = document.getElementById('world-map');
+    if (!worldMapDiv) return;
+
+    // The Simplemaps world map (like usmap) exposes a global object.
+    // The name is usually `simplemaps_worldmap` or similar. Check your `worldmap.js` file.
+    // We'll detect it and attach events.
+    function setupWorldMap() {
+      const worldMapObj = window.simplemaps_worldmap_map;
+      if (!worldMapObj) {
+        // If different variable name, look for it; but we'll assume it's `simplemaps_worldmap`
+        console.warn('worldmap object not found, retrying in 200ms');
+        setTimeout(setupWorldMap, 200);
+        return;
+      }
+
+      // Attach click event: override or supplement
+      worldMapObj.map_config.state_click = function(data) {
+        let countryName = data.name; // e.g., "United States"
+        // Special mapping for Palestine/Israel
+        if (countryName.toLowerCase() === 'palestine' || data.code === 'IL') {
+          // Show reports from "Palestine", "State of Palestine", or "Israel"
+          filterReportsByCountryList(['Palestine', 'State of Palestine', 'Israel']);
+        } else {
+          filterReportsByCountry(countryName);
+        }
+      };
+
+      // Optional: refresh map to apply changes
+      if (worldMapObj.refresh) worldMapObj.refresh();
+    }
+
+    // Helper: filter by a single country
+    function filterReportsByCountry(countryName) {
+      if (!countryName) return;
+      const searchInput = document.getElementById('report-search');
+      if (searchInput) {
+        searchInput.value = countryName;
+      }
+      // Also clear the state dropdown and US map selection if needed
+      const browseStateSelect = document.getElementById('browse-state-select');
+      if (browseStateSelect) browseStateSelect.value = '';
+      if (typeof window.clearSelectedMapState === 'function') window.clearSelectedMapState();
+      // Apply filter (this triggers your existing applySearchFilter)
+      if (typeof applySearchFilter === 'function') {
+        applySearchFilter();
+      }
+    }
+
+    // Helper: filter by multiple possible country names (for Palestine/Israel)
+    function filterReportsByCountryList(countries) {
+      if (!countries.length) return;
+      // We'll modify the search input to show something generic, but the actual filtering
+      // needs to be custom: we need to filter allReports manually.
+      // Simpler: set search input to empty and then apply a custom filter.
+      const searchInput = document.getElementById('report-search');
+      if (searchInput) searchInput.value = '';
+      // Custom filter
+      const filtered = allReports.filter(r => countries.includes(r.country));
+      // Use your existing pagination functions
+      if (typeof renderPagedReports === 'function') {
+        renderPagedReports(filtered, 1);
+        const browseMsg = document.getElementById('browse-message');
+        if (browseMsg) browseMsg.textContent = `Showing ${filtered.length} of ${allReports.length} report(s) for Palestine/Israel.`;
+      }
+    }
+
+    // Expose the filter functions globally so your other code can use them
+    window.filterReportsByCountry = filterReportsByCountry;
+    window.filterReportsByCountryList = filterReportsByCountryList;
+
+    // Start when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupWorldMap);
+    } else {
+      setupWorldMap();
+    }
+  })();
+</script>
 
   
 </body>
