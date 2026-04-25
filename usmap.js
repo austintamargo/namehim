@@ -223,6 +223,24 @@ var simplemaps_usmap_mapinfo={map_name:'us',initial_view:{x:-20,y:-10,x2:980,y2:
     tooltip.style.display = "none";
   }
 
+
+  function removeSimpleMapsBranding() {
+    var container = getMapContainer();
+    var links;
+    var i;
+
+    if (!container) {
+      return;
+    }
+
+    links = container.querySelectorAll('a[href*="simplemaps.com"], a[title*="SimpleMaps"], a[title*="Simplemaps"]');
+    for (i = 0; i < links.length; i += 1) {
+      if (links[i] && links[i].parentNode) {
+        links[i].parentNode.removeChild(links[i]);
+      }
+    }
+  }
+
   function chainHook(hookName, handler) {
     var map = window.simplemaps_usmap;
     if (!map || !map.hooks) {
@@ -294,6 +312,7 @@ var simplemaps_usmap_mapinfo={map_name:'us',initial_view:{x:-20,y:-10,x2:980,y2:
       disableStateUrls();
       ensureMapResponsive();
       normalizeMapPointerEvents();
+      removeSimpleMapsBranding();
     });
 
     chainHook("over_state", function (stateId) {
@@ -345,6 +364,7 @@ var simplemaps_usmap_mapinfo={map_name:'us',initial_view:{x:-20,y:-10,x2:980,y2:
     ensureMapResponsive();
     refreshMapHitAreas();
     normalizeMapPointerEvents();
+    removeSimpleMapsBranding();
     return true;
   }
 
