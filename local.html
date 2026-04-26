@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NameHim | Community Safety Awareness Reports</title>
+  <title>LOCAL | NameHim | Community Safety Awareness Reports</title>
   <meta name="description" content="NameHim is a community-driven awareness platform for browsing and submitting safety concern reports with clear disclaimers, transparency, and survivor-centered context." />
   <meta name="robots" content="index, follow, max-image-preview:large" />
   <meta name="theme-color" content="#0b1220" />
@@ -624,11 +624,186 @@
   margin-top: 1rem;
 }
 
+
+    .local-banner {
+      background: #7c3aed;
+      color: #fff;
+      text-align: center;
+      padding: 0.55rem 1rem;
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      position: sticky;
+      top: 0;
+      z-index: 300;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <!-- Turnstile intentionally omitted in local mode -->
+  <script>
+    // ── LOCAL MODE: mock Supabase + fetch so nothing hits the live database ──
+    // On first open (or after reset), live data is fetched once from the worker
+    // and stored in localStorage. All mutations stay local.
+
+    const LOCAL_REPORTS_KEY = 'namehim_local_reports';
+    const LOCAL_STORIES_KEY = 'namehim_local_stories';
+    const LIVE_WORKER_URL = 'https://api.namehim.app/filtered-reports';
+
+    function _localGetReports() {
+      try { const s = localStorage.getItem(LOCAL_REPORTS_KEY); if (s) return JSON.parse(s); } catch(e) {}
+      return null; // null = not yet seeded
+    }
+    function _localSaveReports(r) { localStorage.setItem(LOCAL_REPORTS_KEY, JSON.stringify(r)); }
+    function _localGetStories() {
+      try { const s = localStorage.getItem(LOCAL_STORIES_KEY); if (s) return JSON.parse(s); } catch(e) {}
+      return [];
+    }
+    function _localSaveStories(s) { localStorage.setItem(LOCAL_STORIES_KEY, JSON.stringify(s)); }
+
+    class _LocalQuery {
+      constructor(table) {
+        this._t = table; this._action = null; this._payload = null;
+        this._filters = []; this._orderCol = null; this._orderAsc = true;
+        this._from = null; this._to = null; this._countOnly = false;
+      }
+      select(cols, opts) { this._action = 'select'; if (opts && opts.head) this._countOnly = true; return this; }
+      insert(p) { this._action = 'insert'; this._payload = p; return this; }
+      update(p) { this._action = 'update'; this._payload = p; return this; }
+      eq(col, val) { this._filters.push([col, val]); return this; }
+      order(col, opts) { this._orderCol = col; this._orderAsc = !opts || opts.ascending !== false; return this; }
+      range(f, t) { this._from = f; this._to = t; return this; }
+      then(res, rej) { return Promise.resolve().then(() => this._run()).then(res, rej); }
+
+      _run() {
+        if (this._t === 'report_flags') return { data: null, error: null };
+        if (this._t === 'reports') return this._runReports();
+        if (this._t === 'stories') return this._runStories();
+        if (this._t === 'report_corroborations') return this._runCorroborations();
+        return { data: null, error: null };
+      }
+      _runCorroborations() {
+        const KEY = 'namehim_local_corroborations';
+        const rows = JSON.parse(localStorage.getItem(KEY) || '[]');
+        if (this._action === 'select') {
+          return { data: rows, error: null };
+        }
+        if (this._action === 'insert') {
+          const p = this._payload;
+          const dup = rows.find(r => String(r.report_id) === String(p.report_id) && r.submitter_uuid === p.submitter_uuid);
+          if (dup) return { data: null, error: { code: '23505', message: 'duplicate key' } };
+          rows.push({ id: rows.length + 1, created_at: new Date().toISOString(), ...p });
+          localStorage.setItem(KEY, JSON.stringify(rows));
+          return { data: null, error: null };
+        }
+        return { data: null, error: null };
+      }
+      _runReports() {
+        if (this._action === 'insert') {
+          const rows = _localGetReports() || [];
+          const id = Math.max(0, ...rows.map(r => r.id || 0)) + 1;
+          const row = { id, created_at: new Date().toISOString(), ...this._payload };
+          rows.unshift(row); _localSaveReports(rows);
+          return { data: [row], error: null };
+        }
+        if (this._action === 'update') {
+          const rows = _localGetReports() || [];
+          for (const [col, val] of this._filters) {
+            const i = rows.findIndex(r => String(r[col]) === String(val));
+            if (i !== -1) rows[i] = { ...rows[i], ...this._payload };
+          }
+          _localSaveReports(rows); return { data: null, error: null };
+        }
+        if (this._action === 'select') {
+          let rows = _localGetReports() || [];
+          for (const [col, val] of this._filters) rows = rows.filter(r => r[col] === val);
+          if (this._countOnly) return { count: rows.length, data: null, error: null };
+          if (this._orderCol) {
+            const c = this._orderCol, asc = this._orderAsc;
+            rows = [...rows].sort((a,b) => { const va=a[c]||'', vb=b[c]||''; return asc ? (va<vb?-1:va>vb?1:0) : (va>vb?-1:va<vb?1:0); });
+          }
+          if (this._from !== null) rows = rows.slice(this._from, this._to + 1);
+          return { data: rows, error: null };
+        }
+        return { data: null, error: null };
+      }
+      _runStories() {
+        if (this._action === 'insert') {
+          const rows = _localGetStories();
+          const row = { id: rows.length + 1, is_approved: true, created_at: new Date().toISOString(), ...this._payload };
+          rows.unshift(row); _localSaveStories(rows); return { data: [row], error: null };
+        }
+        if (this._action === 'select') {
+          let rows = _localGetStories();
+          for (const [col, val] of this._filters) rows = rows.filter(r => r[col] === val);
+          return { data: rows, error: null };
+        }
+        return { data: null, error: null };
+      }
+    }
+
+    window.__localMockClient = { from: (table) => new _LocalQuery(table) };
+
+    // Always intercept the worker URL and serve from localStorage.
+    // The page never tries to hit the live URL during normal load.
+    const _realFetch = window.fetch.bind(window);
+    window.fetch = function(url, ...args) {
+      if (typeof url === 'string' && url.includes('api.namehim.app')) {
+        const cached = _localGetReports();
+        return Promise.resolve(new Response(JSON.stringify(cached || []), {
+          status: 200, headers: { 'Content-Type': 'application/json' }
+        }));
+      }
+      return _realFetch(url, ...args);
+    };
+
+    // "Reset from live DB": pull data directly from Supabase (works from file://)
+    // then store it so the page reloads without any live network calls.
+    window.__resetLocalDB = async function() {
+      const btn = document.getElementById('local-reset-btn');
+      btn.textContent = 'Syncing…';
+      btn.disabled = true;
+      try {
+        const realClient = window.supabase.createClient(
+          'https://cmmggaprguusffiphegy.supabase.co',
+          'sb_publishable_G9Doh6gciyFVT1NDum55ZA_8ryL3fOw'
+        );
+        const collected = [];
+        let from = 0;
+        while (true) {
+          const { data, error } = await realClient
+            .from('reports')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .range(from, from + 999);
+          if (error) throw error;
+          const rows = Array.isArray(data) ? data : [];
+          collected.push(...rows);
+          if (rows.length < 1000) break;
+          from += 1000;
+        }
+        _localSaveReports(collected);
+        localStorage.removeItem(LOCAL_STORIES_KEY);
+        window.location.reload();
+      } catch (err) {
+        btn.textContent = 'Reset from live DB';
+        btn.disabled = false;
+        // inline error — no blocking alert
+        const msg = document.createElement('span');
+        msg.style.cssText = 'margin-left:0.75rem;color:#fca5a5;font-size:0.78rem;';
+        msg.textContent = 'Sync failed: ' + err.message;
+        btn.insertAdjacentElement('afterend', msg);
+        setTimeout(() => msg.remove(), 8000);
+      }
+    };
+  </script>
 </head>
 <body>
+  <div class="local-banner">
+    LOCAL TEST MODE — no data is written to the live database
+    <button id="local-reset-btn" onclick="window.__resetLocalDB()" style="margin-left:1rem;background:#5b21b6;border-color:#7c3aed;color:#fff;font-size:0.78rem;padding:0.2rem 0.55rem;">Reset from live DB</button>
+  </div>
+  <!-- auto-pass Turnstile in local mode -->
+  <input type="hidden" name="cf-turnstile-response" value="local-test-token">
   <div class="disclaimer">
     DISCLAIMER: All user-submitted statements on this site are unverified and generated by third-party users, not by the operator of this site. We do not endorse, confirm, or investigate the truth of any user submission. This information is presented for informational purposes only and is not a substitute for professional legal advice or law enforcement investigation.
   </div>
@@ -1097,7 +1272,7 @@
     const RATE_LIMIT_STORAGE_KEY = 'submission_timestamps';
     const SUBMITTER_ID_KEY = 'submitter_id';
 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.__localMockClient;
 
     const pageBrowse = document.getElementById('page-browse');
     const pageSubmit = document.getElementById('page-submit');
