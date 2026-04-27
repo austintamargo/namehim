@@ -173,6 +173,15 @@
       color: #bfdbfe;
     }
 
+    .support-buttons {
+      margin-top: 0.9rem;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+
     footer {
       border-top: 1px solid var(--border);
       background: rgba(17, 24, 39, 0.85);
@@ -267,6 +276,19 @@
           </p>
         </section>
 
+              <section>
+        <h3 class="text-lg font-semibold mb-2">Privacy &amp; data collection</h3>
+        <p><strong>We collect almost nothing.</strong> Your privacy is central to how NameHim works.</p>
+        <ul class="list-disc pl-5 space-y-2 mt-2">
+          <li><strong>No accounts, no emails, no passwords.</strong> You never sign up or log in.</li>
+          <li><strong>No IP addresses are stored.</strong> We never record your IP address in the database, logs, or anywhere else. (A temporary IP check is used only for rate limiting – it is never saved and expires within 60 seconds.)</li>
+          <li><strong>No cookies are used for tracking.</strong> We only store a random, anonymous ID in your browser's local storage to enforce rate limits (max 3 reports per hour). This ID is not linked to any personal information and cannot be used to identify you.</li>
+          <li><strong>What you see in browser dev tools is the same data that is displayed on the page:</strong> the name and location of the accused, the category of concern, and a timestamp. There is no hidden data that can re‑identify submitters.</li>
+          <li><strong>The `submitter_uuid` field that appears in the raw API response is a random, one‑time identifier.</strong> It cannot be linked to your real identity or IP address. It is only used to prevent spam (3 submissions per hour). You can clear it at any time by clearing your browser's local storage.</li>
+        </ul>
+        <p class="mt-2">In short: we don't know who you are, and we don't want to. Your safety and anonymity are the whole point.</p>
+      </section>
+
         <section>
           <h3>Build your own</h3>
           <p>I encourage anyone who cares about this to make your own site – fork this code, improve it, run it your own way. If anything ever happens to this site, the work can continue in the hands of anyone who wants to carry it forward. This should never be controlled by one person.</p>
@@ -275,6 +297,30 @@
         <section>
           <h3>Why this exists</h3>
           <p>The original site (that someone else made) went down within days. People still need a space to share concerns anonymously, responsibly, without fear. This is my attempt to keep that door open. I'll improve it over time. Suggestions are welcome.</p>
+        </section>
+
+        <section>
+          <h3>Financial Transparency and Optional Support</h3>
+          <p>Hello, I built this open source project as a single developer and have so far spent about $40 on hosting and maintaining the site and database it displays. I'm not sure what other costs might arise, but I've already put many hours into developing and maintaining it and am willing to continue doing that. My fiance is 9 months pregnant and we are already using credit to maintain our bills and our rental. Beyond that, the transmission for our car just went out.</p>
+          <p>I am committed to keeping this site up, functional, and free. If you want to support that by helping with the costs of the site, or if there's any extra to help me and my family with our bills or other necessities so we can bring our child into a stable environment, it is greatly appreciated.</p>
+          <p>(When things develop, such as the arrival of our baby or when we get into a more stable position, I will update this section to let you guys know.)</p>
+          <div class="support-buttons">
+            <div>
+              <script src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+              <script>kofiwidget2.init('Support me on Ko-fi', '#72a4f2', 'R5R81YISDW');kofiwidget2.draw();</script>
+            </div>
+            <div>
+              <style>.pp-Y88TMRL6PM2EQ{text-align:center;border:none;border-radius:0.25rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
+              <form action="https://www.paypal.com/ncp/payment/Y88TMRL6PM2EQ" method="post" target="_blank" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
+                <input class="pp-Y88TMRL6PM2EQ" type="submit" value="Support via Paypal" />
+                <img src=https://www.paypalobjects.com/images/Debit_Credit_APM.svg alt="cards" />
+                <section style="font-size: 0.75rem;"> Powered by <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal" style="height:0.875rem;vertical-align:middle;"/></section>
+              </form>
+            </div>
+          </div>
+        </section>
+        <section>
+          <p>Contact: namehim.app@proton.me</p>
         </section>
       </article>
     </div>
@@ -297,6 +343,32 @@
       return parsedTotal.toLocaleString('en-US');
     }
 
+    const loadingDots = ['.', '..', '...'];
+    let loadingDotIndex = 0;
+    let reportCountLoadingInterval = null;
+
+    function startReportCountLoadingAnimation(reportCount) {
+      if (!reportCount || reportCountLoadingInterval) {
+        return;
+      }
+
+      reportCount.textContent = 'Loading reports and counting' + loadingDots[loadingDotIndex];
+      reportCountLoadingInterval = setInterval(() => {
+        loadingDotIndex = (loadingDotIndex + 1) % loadingDots.length;
+        reportCount.textContent = 'Loading reports and counting' + loadingDots[loadingDotIndex];
+      }, 1000);
+    }
+
+    function stopReportCountLoadingAnimation() {
+      if (!reportCountLoadingInterval) {
+        return;
+      }
+
+      clearInterval(reportCountLoadingInterval);
+      reportCountLoadingInterval = null;
+      loadingDotIndex = 0;
+    }
+
     const SUPABASE_URL = 'https://cmmggaprguusffiphegy.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_G9Doh6gciyFVT1NDum55ZA_8ryL3fOw';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -306,6 +378,7 @@
       if (!reportCount) {
         return;
       }
+      startReportCountLoadingAnimation(reportCount);
 
       const WORKER_URL = 'https://api.namehim.app/filtered-reports';
 
@@ -340,6 +413,8 @@
       } catch (error) {
         console.error('Failed to load report count:', error);
         reportCount.textContent = '0 reports and counting...';
+      } finally {
+        stopReportCountLoadingAnimation();
       }
     }
 
