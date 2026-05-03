@@ -2802,9 +2802,28 @@ async function loadMapStats() {
       rebuildAllowedCountries();
       renderCategories();
       updateRateLimitUI();
+      
+
+
       renderRoute();
-      loadReports(1);
+      // Step 1: Load page 1 only to get total count (we won't display it)
+      loadReports(1).then(() => {
+      const totalPages = Math.ceil(allTotalCount / REPORTS_PER_PAGE);
+      // Choose a starting page: either page 10, or if fewer than 10 pages, the last page, or 1 if none
+      let startPage = 1;
+      if (totalPages >= 10) {
+      startPage = 10;               // you can change to totalPages - 9 to show near end
+      } else if (totalPages > 1) {
+      startPage = totalPages;       // show last page if less than 10 pages
+      }
+      // Step 2: Load the chosen page (this will actually display reports)
+      loadReports(startPage);
+      });
       loadMapStats();
+
+
+
+
       setupReportActionHandler();
       startRealtimeUpdates();
       renderStateField();
