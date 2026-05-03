@@ -2806,20 +2806,38 @@ async function loadMapStats() {
 
 
       renderRoute();
-      // Step 1: Load page 1 only to get total count (we won't display it)
-      loadReports(1).then(() => {
-      const totalPages = Math.ceil(allTotalCount / REPORTS_PER_PAGE);
-      // Choose a starting page: either page 10, or if fewer than 10 pages, the last page, or 1 if none
-      let startPage = 1;
-      if (totalPages >= 10) {
-      startPage = 10;               // you can change to totalPages - 9 to show near end
-      } else if (totalPages > 1) {
-      startPage = totalPages;       // show last page if less than 10 pages
-      }
-      // Step 2: Load the chosen page (this will actually display reports)
-      loadReports(startPage);
-      });
-      loadMapStats();
+
+// First, get the total report count without loading a full page
+async function getTotalReportCount() {
+  try {
+    const response = await fetch('https://api.namehim.app/reports?page=1&limit=1');
+    if (!response.ok) throw new Error('Failed to fetch total count');
+    const data = await response.json();
+    return data.total;
+  } catch (err) {
+    console.error('Could not get total count', err);
+    return null;
+  }
+}
+
+getTotalReportCount().then(total => {
+  if (total === null) {
+    // fallback – load page 1 anyway
+    loadReports(1);
+    return;
+  }
+  const totalPages = Math.ceil(total / REPORTS_PER_PAGE);
+  let startPage = 1;
+  if (totalPages >= 10) {
+    startPage = 10;
+  } else if (totalPages > 1) {
+    startPage = totalPages;
+  }
+  // Now load the desired page directly – no flicker
+  loadReports(startPage);
+});
+
+loadMapStats();
 
 
 
