@@ -1166,6 +1166,7 @@
     window.countryCounts = countryCounts;
     let fullReportsList = [];
     let fullListLoaded = false;
+    const DEFAULT_BROWSE_PAGE = 10;
 
 
     // --- ADDED: submitter_uuid management (critical fix) ---
@@ -1804,6 +1805,10 @@ async function filterReportsByState(stateFullName) {
   });
 
   updateBrowseViewFromRoute();
+
+  if (route === '#/browse' && !getReportIdFromUrl()) {
+    loadReports(DEFAULT_BROWSE_PAGE);
+  }
 
   if (route === '#/community') {
     updateCommunityViewFromRoute();
@@ -2803,7 +2808,6 @@ async function loadMapStats() {
       renderCategories();
       updateRateLimitUI();
       renderRoute();
-      loadReports(1);
       loadMapStats();
       setupReportActionHandler();
       startRealtimeUpdates();
@@ -2841,7 +2845,7 @@ async function loadMapStats() {
           clearSingleReportHash();
           return;
         }
-        await loadReports(1);
+        await loadReports(DEFAULT_BROWSE_PAGE);
       });
       if (backToAllReportsBtn) {
         backToAllReportsBtn.addEventListener('click', function onBackToAllReportsClick() {
