@@ -588,8 +588,16 @@
 }
 .story-card-header {
   display: flex;
-  justify-content: flex-end;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
   margin: 0 0 0.65rem;
+}
+.story-card-title {
+  margin: 0;
+  color: var(--accent);
+  flex: 1;
+  min-width: 0;
 }
 .story-category {
   display: inline-flex;
@@ -599,10 +607,6 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-}
-.story-card h4 {
-  margin: 0 0 0.5rem 0;
-  color: var(--accent);
 }
 .story-actions {
   margin-top: 0.75rem;
@@ -2321,11 +2325,10 @@ async function loadMapStats() {
       else if (categoryValue === 'Call to Action') categoryClass = 'story-category-calltoaction';
       else if (categoryValue === 'Question / Discussion') categoryClass = 'story-category-question';
       const categoryHtml = `<span class="story-category ${categoryClass}">${escapeHTML(categoryValue)}</span>`;
-      const titleHtml = story.title ? `<h4>${escapeHTML(story.title)}</h4>` : '';
+      const titleHtml = story.title ? `<h4 class="story-card-title">${escapeHTML(story.title)}</h4>` : '';
       return `
       <div class="story-card">
-        <div class="story-card-header">${categoryHtml}</div>
-        ${titleHtml}
+        <div class="story-card-header">${titleHtml}${categoryHtml}</div>
         <p>${escapeHTML(story.content)}</p>
         <div class="story-meta">— Anonymous, ${submittedAt}</div>
         <div class="story-actions">
