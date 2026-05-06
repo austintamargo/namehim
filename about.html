@@ -35,6 +35,7 @@
       --text: #e5e7eb;
       --muted: #9ca3af;
       --border: #334155;
+      --accent: #60a5fa;
     }
     body.light-mode {
       --bg: #ffffff;
@@ -43,9 +44,14 @@
       --text: #000000;
       --muted: #374151;
       --border: #000000;
+      --accent: #2563eb;
     }
 
     * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       margin: 0;
@@ -154,6 +160,36 @@
       font-size: 1.6rem;
     }
 
+    .about-section-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0 1.5rem;
+    }
+
+    .about-section-link {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 2rem;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 0.3rem 0.8rem;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .about-section-link.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0f172a;
+    }
+
+    .about-section-link:hover {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
     h3 {
       margin: 0 0 0.5rem;
       font-size: 1.1rem;
@@ -161,6 +197,10 @@
 
     section + section {
       margin-top: 1.25rem;
+    }
+
+    section[id] {
+      scroll-margin-top: 6rem;
     }
 
     p {
@@ -283,12 +323,27 @@
       <article class="panel">
         <h2>About This Site</h2>
 
-        <section>
+        <div class="about-section-nav" aria-label="About page sections">
+          <a class="about-section-link active" href="#what-this-is">What this is</a>
+          <a class="about-section-link" href="#why-name-him">Why Name Him?</a>
+          <a class="about-section-link" href="#how-to-use">How to use</a>
+          <a class="about-section-link" href="#legal-safety">Legal &amp; safety</a>
+          <a class="about-section-link" href="#open-source">Open source</a>
+          <a class="about-section-link" href="#privacy-data">Privacy</a>
+          <a class="about-section-link" href="#build-your-own">Build your own</a>
+          <a class="about-section-link" href="#why-this-exists">Why this exists</a>
+          <a class="about-section-link" href="#financial-support">Support</a>
+          <a class="about-section-link" href="#contact">Contact</a>
+          <a class="about-section-link" href="#admin-log">Admin Log</a>
+          <a class="about-section-link" href="#poster">Poster</a>
+        </div>
+
+        <section id="what-this-is">
           <h3>What this is</h3>
           <p>This is a community-driven, open-source awareness tool. It is not a place to make legal accusations. It is simply a place for people to say: 'This person raised concerns for me in these specific ways.'</p>
         </section>
 
-        <section>
+        <section id="why-name-him">
           <h3>Why "Name Him?"</h3>
           <p>Nothing stops people from adding the names of their abusers of any gender. But this site is called NameHim on purpose.</p>
           <p>Over 98% of violent crimes are committed by men. The vast majority of sexual assaults, harassment, and other forms of abuse are perpetrated by men. This is not about blaming every man; it's about naming a real, measurable, patriarchal problem in our society.</p>
@@ -296,17 +351,17 @@
           <p>Anyone is free to add abusers of any gender to this site. But the name stays. Because until we face who is doing most of the harm, we can't begin to fix it.</p>
         </section>
 
-        <section>
+        <section id="how-to-use">
           <h3>How to use this information</h3>
           <p>Everything on this site is user-generated and unverified. We do not investigate, confirm, or endorse any claim. If you come across a name here, treat it as a starting point; someone to watch out for, to do your own further investigation on if you ever meet them. It is not about demonizing anyone or saying they are damned forever. It is just a signal: be aware, and check for yourself.</p>
         </section>
 
-        <section>
+        <section id="legal-safety">
           <h3>Legal &amp; safety notice</h3>
           <p>This site does not replace law enforcement, courts, or professional advice. If you believe someone is in immediate danger, call 911 (or your local emergency number). For serious accusations, go to the police, not just this website.</p>
         </section>
 
-        <section>
+        <section id="open-source">
           <h3>Open source &amp; transparency</h3>
           <p>
             This entire project is open source. You can read every line of code, suggest improvements, or report issues at our GitHub repository:
@@ -319,7 +374,7 @@
           </p>
         </section>
 
-              <section>
+              <section id="privacy-data">
         <h3 class="text-lg font-semibold mb-2">Privacy &amp; data collection</h3>
         <p><strong>We collect almost nothing.</strong> Your privacy is central to how NameHim works.</p>
         <ul class="list-disc pl-5 space-y-2 mt-2">
@@ -332,17 +387,17 @@
         <p class="mt-2">In short: we don't know who you are, and we don't want to. Your safety and anonymity are the whole point.</p>
       </section>
 
-        <section>
+        <section id="build-your-own">
           <h3>Build your own</h3>
           <p>I encourage anyone who cares about this to make your own site – fork this code, improve it, run it your own way. If anything ever happens to this site, the work can continue in the hands of anyone who wants to carry it forward. This should never be controlled by one person.</p>
         </section>
 
-        <section>
+        <section id="why-this-exists">
           <h3>Why this exists</h3>
           <p>The original site (that someone else made) went down within days. People still need a space to share concerns anonymously, responsibly, without fear. This is my attempt to keep that door open. I'll improve it over time. Suggestions are welcome.</p>
         </section>
 
-        <section>
+        <section id="financial-support">
           <h3>Financial Transparency and Optional Support</h3>
           <p>Hello, I built this open source project as a single developer and have so far spent about $40 on hosting and maintaining the site and database it displays. I'm not sure what other costs might arise, but I've already put many hours into developing and maintaining it and am willing to continue doing that. My fiance is 9 months pregnant and we are already using credit to maintain our bills and our rental. Beyond that, the transmission for our car just went out.</p>
           <p>I am committed to keeping this site up, functional, and free. If you want to support that by helping with the costs of the site, or if there's any extra to help me and my family with our bills or other necessities so we can bring our child into a stable environment, it is greatly appreciated.</p>
@@ -363,17 +418,17 @@
           </div>
         </section>
 
-        <section>
+        <section id="contact">
           <p>Contact: namehim.app@proton.me</p>
         </section>
-        <section>
+        <section id="admin-log">
           <h3>Admin Log</h3>
           <p><strong>6:30 a.m. May 6, 2026 (PDT):</strong> Hello everyone, we now have two more moderators on the team, and both of them and I are working hard every day to take down spam and false retaliation reports on the site. I've also agreed to share 40% of any tips or donations that come in to the site with these moderators, so thank you to everyone who's helped out so far. All three of us are working very hard to make this site functional and useful. Also, I just wanted to remind everybody that even if there is spam temporarily, it does not take away from the actual names that are up here, and our database is searchable by name, city, state, or country.</p>
           <p><strong>2:20 p.m. May 2, 2026 (PDT):</strong> Hello everyone, thank you to everyone who has supported the site so far. From the bottom of my heart, my family and I appreciate you. The support I've received so far has covered the costs of hosting and storing the database that I spent initially on the project. I've been putting a lot of time in every day to improve the site's functionality and add more user-friendly features. For instance, one thing I've done is update the Community tab so you can now select a category for your story, and you can choose Survivor Story if it might contain content that could trigger others. That way, people can decide whether they want to read those stories or stick with other categories like empowerment and hope. I've also added a resources page that provides information for almost every country so far, including emergency numbers and hotlines if you're in the middle of a crisis or an unsafe situation. Thank you again, everyone. I will continue putting my time into maintaining and updating the site so it remains a functional space and tool for survivors like myself. If you have any questions, feel free to reach out. And thank you so much to the person who created and submitted the user poster below.
           I am still dedicating a lot of time to this site and our family still does not have a car anymore so support is still appreciated and helpful.</p>
           <p><strong>2:00 a.m. April 27, 2026 (PDT):</strong> The site suffered a very intelligent malicious attack, but after many hours of problem solving and updating the site and the database, it has been fixed and should stop this from happening in the future. In this process, there may have been an accidental deletion of some entries, so if you submitted your entry around the time the site had between 18,000 and 21,000 reports, please check if your submission is still there. If it is not, feel free to submit again.</p>
         </section>
-        <section>
+        <section id="poster">
           <h3>User submitted poster</h3>
           <img class="poster-image" src="NameHimPoster-1.png" alt="User submitted NameHim poster" />
           <a class="poster-download" href="NameHimPoster.pdf" download>Download poster PDF</a>
@@ -469,6 +524,15 @@
       }
     }
 
+
+    const aboutSectionLinks = Array.from(document.querySelectorAll('.about-section-link'));
+
+    aboutSectionLinks.forEach((link) => {
+      link.addEventListener('click', () => {
+        aboutSectionLinks.forEach((sectionLink) => sectionLink.classList.remove('active'));
+        link.classList.add('active');
+      });
+    });
 
     // Start the count load
     loadReportCount();
